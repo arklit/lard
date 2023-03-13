@@ -4,6 +4,7 @@
       variant="outlined"
       label="Поиск сотрудников"
       hide-details="auto"
+      v-model="searchQuery"
       class="main__input">
       <template v-slot:append-inner> 
         <img 
@@ -16,20 +17,10 @@
     <h2 class="main__title">Список сотрудников</h2>
     <div class="d-flex flex-row mb-6">
       <div v-for="tag in tags" :key="tag.id" @click="selectedTagId = tag.id" class="ma-2 pa-2 pr-4 pl-4 main__labels">{{ tag.name }}</div>
-      <!-- <v-sheet
-      v-for="(tag, index) in tags"
-      :key="index"
-      class="ma-2 pa-2 pr-4 pl-4 main__labels"
-      :class="{ active: tag.id === activeTag }"
-      :style="{ backgroundColor: tag.color }"
-      @click="filterByTag(tag.id)"
-    >
-      {{ tag.title }}
-    </v-sheet> -->
     </div>
     <v-container fluid>
     <v-row>
-      <v-col v-for="(worker, index) in filteredWorkers" :key="index" cols="12">
+      <v-col v-for="(worker, index) in sortedWorkers" :key="index" cols="12">
         <v-card outlined class="main-card">
           <v-card-title>
             <div class="d-flex justify-start align-center">
@@ -73,6 +64,11 @@
 import { Worker, Tag } from '@/types.js'
 import { ref, computed } from 'vue'
 export default {
+  data() {
+    return {
+      searchQuery: "",
+    };
+  },
   setup() {
     const workers: Worker[] = [
       {
@@ -343,23 +339,47 @@ export default {
         { id: 3, name: 'Есть замечания', color: '#00B6ED' },
         { id: 4, name: 'Выполнено', color: '#00AE5B' },
       ];
+    const searchQuery = ref('')
     const showAll = ref(false);
 
     const filteredWorkers = computed(() => {
-
-      if (selectedTagId.value === 0 && !showAll.value) {
-        return workers.slice(0, 4);
-      } else if(showAll.value && selectedTagId.value === 0){
-        return workers 
-      } else {
-        return workers.filter(worker => worker.stuff_tag.id === selectedTagId.value);
+      let filtered = workers;
+      if (selectedTagId.value !== 0) {
+        filtered = filtered.filter((worker) => worker.stuff_tag.id === selectedTagId.value);
       }
+      if (!showAll.value) {
+        filtered = filtered.slice(0, 4);
+      }
+      return filtered;
     });
-    function displayedItems()  {
-      return showAll.value ? workers : workers.slice(0, 4)
-    }
-    
-    return { workers, showAll, displayedItems, filteredWorkers, tags, selectedTagId }
+
+    const sortedWorkers = computed(() => {
+      const search = searchQuery.value.toLowerCase();
+      let sorted = filteredWorkers.value;
+
+      sorted = sorted.filter(worker => {
+        const name = worker.full_name.toLowerCase();
+        return name.includes(search);
+      });
+
+      sorted.sort((a, b) => {
+        const nameA = a.full_name.toLowerCase();
+        const nameB = b.full_name.toLowerCase();
+
+        if (nameA < nameB) {
+          return -1;
+        } else if (nameA > nameB) {
+          return 1;
+        } else {
+          return 0;
+        }
+      });
+
+      return sorted;
+    });
+
+  
+    return { workers, showAll, filteredWorkers, tags, selectedTagId, searchQuery, sortedWorkers }
   }
 };
 </script>

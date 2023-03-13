@@ -2,7 +2,7 @@
   <v-col cols="4" class="side pa-0">
     <v-container fluid class="side__container pa-0">
       <div class="pa-8">
-        <v-btn color="#00B6ED" class="side__btn">
+        <v-btn color="#00B6ED" class="side__btn" @click="showModal">
           <template v-slot:prepend>
             <img width="24" height="24" src="../assets/icons/icon-people.svg" />
           </template>
@@ -55,8 +55,28 @@
       </v-form>
     </v-container>
   </v-col>
+  <Modal :show="show" :onClose="closeModal"/>
 </template>
-<script lang="ts"></script>
+<script lang="ts">
+import Modal from './Modal.vue';
+export default {
+  data: (): { show: boolean } => ({
+    show: false,
+  }),
+  components: {
+    Modal,
+  },
+  methods: {
+    showModal(this: { show: boolean }): void {
+      this.show = true;
+    },
+    closeModal(this: { show: boolean }): void {
+      this.show = false
+    }
+  },
+};
+
+</script>
 <style scoped lang="scss">
 .side {
   &__container {
